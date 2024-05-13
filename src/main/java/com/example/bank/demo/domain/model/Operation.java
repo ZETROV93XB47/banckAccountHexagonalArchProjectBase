@@ -1,35 +1,41 @@
 package com.example.bank.demo.domain.model;
 
+import com.example.bank.demo.domain.model.enumpackage.AccountType;
 import com.example.bank.demo.domain.model.enumpackage.TypeOperation;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
 @ToString
+@AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode
-@RequiredArgsConstructor
 @Table(name = "operation")
 public class Operation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private final Long id;
+    private Long id;
 
     @ManyToOne
+    @JsonBackReference
     @JoinColumn(name = "accountid", nullable = false)
-    private final BankAccount compteBancaire;
+    private Bank accountId;
 
-    @Enumerated(EnumType.STRING)
-    private final TypeOperation typeOperation;
+    @Column(name = "typeoperation", nullable = false)
+    private TypeOperation typeOperation;
 
     @Column(nullable = false)
-    private final BigDecimal montant;
+    private BigDecimal montant;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false)
-    private final Date dateOperation;
+    @Column(name = "accounttype", nullable = false)
+    private AccountType accountType;
+
+    @Column(name = "dateoperation", nullable = false)
+    private LocalDateTime dateOperation;
 }

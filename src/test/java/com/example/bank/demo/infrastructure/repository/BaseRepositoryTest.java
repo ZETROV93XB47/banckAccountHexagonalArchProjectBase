@@ -2,7 +2,6 @@ package com.example.bank.demo.infrastructure.repository;
 
 import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -27,7 +26,7 @@ public abstract class BaseRepositoryTest {
     public static class DataSourceInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
         @Override
-        public void initialize(@NotNull ConfigurableApplicationContext applicationContext) {
+        public void initialize(@NotNull @org.jetbrains.annotations.NotNull ConfigurableApplicationContext applicationContext) {
             TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
                     applicationContext,
                     "spring.test.database.replace=none", // Tells Spring Boot not to start in-memory db for tests.

@@ -1,7 +1,7 @@
 package com.example.bank.demo.domain.service;
 
-import com.example.bank.demo.domain.ports.useCase.MakeDepositPort;
-import com.example.bank.demo.domain.ports.useCase.MakeWithDrawalPort;
+import com.example.bank.demo.domain.ports.useCase.MakeDepositUseCase;
+import com.example.bank.demo.domain.ports.useCase.MakeWithDrawalUseCase;
 import com.example.bank.demo.domain.dto.response.DepositResponseDto;
 import com.example.bank.demo.domain.dto.response.WithdrawalResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -13,14 +13,14 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor
 public class BankOperationsUseCase {
 
-    private final MakeDepositPort makeDepositPort;
-    private final MakeWithDrawalPort makeWithDrawalPort;
+    private final MakeDepositUseCase makeDepositUseCase;
+    private final MakeWithDrawalUseCase makeWithDrawalUseCase;
 
     public DepositResponseDto makeDeposit(BigDecimal depositValue, Long accountId) {
-        return makeDepositPort.makeDeposit(depositValue, accountId);
+        return makeDepositUseCase.makeDeposit(depositValue, accountId);
     }
 
     public WithdrawalResponseDto makeWithdrawal(BigDecimal withdrawalAmount, Long accountId) {
-        return makeWithDrawalPort.makeWithdrawal(withdrawalAmount, accountId);
+        return makeWithDrawalUseCase.makeWithdrawal(withdrawalAmount, accountId);
     }
 }

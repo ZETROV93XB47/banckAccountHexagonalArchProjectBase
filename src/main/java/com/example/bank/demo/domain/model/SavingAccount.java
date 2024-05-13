@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+
 @Setter
 @Getter
 @Entity
@@ -17,15 +18,15 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-@Table(name = "bank_account")
-public class BankAccount extends Bank {
+@Table(name = "saving_account")
+public class SavingAccount extends Bank {
 
-    @Column(name = "overdraft",  nullable = false)
-    private BigDecimal overdraftLimit;
+    @Column(name = "depositlimit",  nullable = false)
+    private BigDecimal depositLimit;
 
-    public BankAccount(Long accountId, UUID accountNumber, BigDecimal balance, AccountType accountType, List<Operation> operations, BigDecimal overdraftLimit) {
+    public SavingAccount(Long accountId, UUID accountNumber, BigDecimal balance, AccountType accountType, List<Operation> operations, BigDecimal depositLimit) {
         super(accountId, accountNumber, balance, accountType, operations);
 
-        this.overdraftLimit = overdraftLimit;
+        this.depositLimit = depositLimit;
     }
 }

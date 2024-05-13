@@ -4,6 +4,6 @@ import com.example.bank.demo.domain.dto.response.DepositResponseDto;
 
 import java.math.BigDecimal;
 
-public interface MakeDepositPort {
+public interface MakeDepositUseCase {
     DepositResponseDto makeDeposit(BigDecimal depositValue, Long accountId);
 }
