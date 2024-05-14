@@ -8,6 +8,7 @@ import com.example.bank.demo.domain.model.BankAccount;
 import com.example.bank.demo.domain.model.Operation;
 import com.example.bank.demo.domain.model.SavingAccount;
 import com.example.bank.demo.domain.ports.mapper.DepositResponseDtoMapperPort;
+import com.example.bank.demo.domain.utils.DateProvider;
 import com.example.bank.demo.infrastructure.repository.BankAccountRepository;
 import com.example.bank.demo.infrastructure.repository.BankRepository;
 import com.example.bank.demo.infrastructure.repository.OperationRepository;
@@ -20,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static com.example.bank.demo.domain.model.enumpackage.TypeOperation.DEPOT;
@@ -30,6 +30,7 @@ import static com.example.bank.demo.domain.model.enumpackage.TypeOperation.DEPOT
 @RequiredArgsConstructor
 public class MakeDepositUseCaseService implements com.example.bank.demo.domain.ports.useCase.MakeDepositUseCase {
 
+    private final DateProvider dateProvider;
     private final BankRepository bankRepository;
     private final OperationRepository operationRepository;
     private final BankAccountRepository bankAccountRepository;
@@ -51,7 +52,7 @@ public class MakeDepositUseCaseService implements com.example.bank.demo.domain.p
         }
 
         return switch (accountForDeposit.getAccountType()) {
-            case SAVING_ACCOUNT -> makeDepositOnSavingAccount((SavingAccount) accountForDeposit, depositValue);
+            case SAVING_ACCOUNT -> makeDepositOnSavingAccount((SavingAccount)accountForDeposit, depositValue);
             case CLASSIC_ACCOUNT -> makeDepositOnNormalAccount((BankAccount)accountForDeposit, depositValue);
         };
     }
@@ -69,7 +70,7 @@ public class MakeDepositUseCaseService implements com.example.bank.demo.domain.p
         BigDecimal currentBalance = savingAccount.getBalance();
 
         if(currentBalance.add(depositValue).compareTo(savingAccount.getDepositLimit()) > 0) {
-            throw new DepositLimitExceededException("Your Deposit value exceed the deposit limit on your account ");
+            throw new DepositLimitExceededException("Your Deposit value exceed the deposit limit on your account");
         }
 
         savingAccount.setBalance(currentBalance.add(depositValue));
@@ -80,7 +81,7 @@ public class MakeDepositUseCaseService implements com.example.bank.demo.domain.p
     }
 
     private void saveAssociatedOperation(BigDecimal depositValue, Bank accountForDeposit) {
-        Operation operation = new Operation(null, accountForDeposit, DEPOT, depositValue, accountForDeposit.getAccountType(), LocalDateTime.now());
+        Operation operation = new Operation(null, accountForDeposit, DEPOT, depositValue, accountForDeposit.getAccountType(), dateProvider.getCurrentDate());
         operationRepository.save(operation);
     }
 }

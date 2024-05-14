@@ -5,6 +5,7 @@ import com.example.bank.demo.domain.dto.response.DepositResponseDto;
 import com.example.bank.demo.domain.model.BankAccount;
 import com.example.bank.demo.domain.model.SavingAccount;
 import com.example.bank.demo.domain.ports.mapper.DepositResponseDtoMapperPort;
+import com.example.bank.demo.domain.utils.DateProvider;
 import com.example.bank.demo.infrastructure.repository.BankAccountRepository;
 import com.example.bank.demo.infrastructure.repository.BankRepository;
 import com.example.bank.demo.infrastructure.repository.OperationRepository;
@@ -16,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,8 +30,15 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class MakeDepositUseCaseServiceTest {
 
+    /**
+     * TODO: Revoir cette classe de test après !!!🔥🔥🔥
+     */
+
     @Mock
      private BankRepository bankRepository;
+
+    @Mock
+    private DateProvider dateProvider;
 
     @Mock
     private OperationRepository operationRepository;
@@ -56,6 +65,7 @@ class MakeDepositUseCaseServiceTest {
         //When
         when(bankRepository.findById(1L)).thenReturn(Optional.of(account));
         when(depositResponseDtoMapperPort.mapToDepositResponseDto(account)).thenReturn(responseDto);
+        when(dateProvider.getCurrentDate()).thenReturn(LocalDateTime.of(2024, 5, 14, 16, 24, 30));
 
         DepositResponseDto response = makeDepositUseCaseService.makeDeposit(new BigDecimal(depositValue), 1L);
 
@@ -77,6 +87,7 @@ class MakeDepositUseCaseServiceTest {
         //When
         when(bankRepository.findById(1L)).thenReturn(Optional.of(account));
         when(depositResponseDtoMapperPort.mapToDepositResponseDto(account)).thenReturn(responseDto);
+        when(dateProvider.getCurrentDate()).thenReturn(LocalDateTime.of(2024, 5, 14, 16, 24, 30));
 
         DepositResponseDto response = makeDepositUseCaseService.makeDeposit(new BigDecimal(initBalance), 1L);
 

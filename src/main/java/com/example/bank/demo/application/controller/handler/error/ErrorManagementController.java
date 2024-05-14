@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import static com.example.bank.demo.application.controller.handler.error.enumpackage.ErrorCode.*;
 
 @ControllerAdvice
-public class CustomErrorController {
+public class ErrorManagementController {
 
     @ExceptionHandler(WithdrawalAmountBiggerThanBalanceException.class)
     public ResponseEntity<ErrorResponseDto> handleWithdrawalAmountBiggerThanBalanceException(WithdrawalAmountBiggerThanBalanceException exception) {

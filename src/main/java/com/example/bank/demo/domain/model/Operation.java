@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 @Table(name = "operation")
 public class Operation {
     @Id
+    //@EqualsAndHashCode.Exclude
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

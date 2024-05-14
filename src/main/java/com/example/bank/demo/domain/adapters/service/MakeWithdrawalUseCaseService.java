@@ -9,6 +9,7 @@ import com.example.bank.demo.domain.model.Operation;
 import com.example.bank.demo.domain.model.SavingAccount;
 import com.example.bank.demo.domain.ports.mapper.WithdrawalResponseDtoMapperPort;
 import com.example.bank.demo.domain.ports.useCase.MakeWithDrawalUseCase;
+import com.example.bank.demo.domain.utils.DateProvider;
 import com.example.bank.demo.infrastructure.repository.BankAccountRepository;
 import com.example.bank.demo.infrastructure.repository.BankRepository;
 import com.example.bank.demo.infrastructure.repository.OperationRepository;
@@ -21,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static com.example.bank.demo.domain.model.enumpackage.TypeOperation.RETRAIT;
@@ -31,6 +31,7 @@ import static com.example.bank.demo.domain.model.enumpackage.TypeOperation.RETRA
 @RequiredArgsConstructor
 public class MakeWithdrawalUseCaseService implements MakeWithDrawalUseCase {
 
+    private final DateProvider dateProvider;
     private final BankRepository bankRepository;
     private final OperationRepository operationRepository;
     private final BankAccountRepository bankAccountRepository;
@@ -86,7 +87,7 @@ public class MakeWithdrawalUseCaseService implements MakeWithDrawalUseCase {
     }
 
     private void saveAssociatedOperation(BigDecimal withdrawalValue, Bank accountForwithdrawal) {
-        Operation operation = new Operation(null, accountForwithdrawal, RETRAIT, withdrawalValue, accountForwithdrawal.getAccountType(), LocalDateTime.now());
+        Operation operation = new Operation(null, accountForwithdrawal, RETRAIT, withdrawalValue, accountForwithdrawal.getAccountType(), dateProvider.getCurrentDate());
         operationRepository.save(operation);
     }
 

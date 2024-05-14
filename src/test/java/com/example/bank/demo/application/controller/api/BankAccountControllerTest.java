@@ -3,9 +3,12 @@ package com.example.bank.demo.application.controller.api;
 import com.example.bank.demo.domain.dto.response.DepositResponseDto;
 import com.example.bank.demo.domain.dto.response.WithdrawalResponseDto;
 import com.example.bank.demo.domain.exceptions.AccountNotFoundException;
+import com.example.bank.demo.domain.exceptions.DepositLimitExceededException;
+import com.example.bank.demo.domain.exceptions.WithdrawalAmountBiggerThanBalanceException;
 import com.example.bank.demo.domain.ports.useCase.MakeDepositUseCase;
 import com.example.bank.demo.domain.ports.useCase.MakeWithDrawalUseCase;
 import com.example.bank.demo.domain.ports.useCase.OperationsReportUseCase;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,10 +19,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -53,51 +56,102 @@ class BankAccountControllerTest {
     @Value("classpath:/controllerTest/response/responseForMakingWithdrawal.json")
     private Resource responseForMakingWithdrawal;
 
-    @Test
-    void shouldSucceedDeposit() throws Exception {
-        DepositResponseDto expectedResponse = DepositResponseDto.builder()
-                .accountNumber("745c6891-1122-11ef-bee2-0242ac170002")
-                .balance(new BigDecimal(250))
-                .build();
+    @Value("classpath:/controllerTest/response/responseForAccountNotFoundException.json")
+    private Resource responseForAccountNotFoundException;
 
-        when(makeDepositUseCase.makeDeposit(new BigDecimal(150), 1L)).thenReturn(expectedResponse);
+    @Value("classpath:/controllerTest/response/responseForWithdrawalAmountBiggerThanBalanceException.json")
+    private Resource responseForWithdrawalAmountBiggerThanBalanceException;
 
-        mockMvc.perform(post("/bank/services/deposit")
-                        .contentType(APPLICATION_JSON)
-                        .content(requestForMakingDeposit.getContentAsString(UTF_8)))
-                .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.content().json(responseForMakingDeposit.getContentAsString(UTF_8), true));
+    @Value("classpath:/controllerTest/response/responseForDepositLimitExceededException.json")
+    private Resource responseForDepositLimitExceededException;
+
+    @Nested
+    class BankAccountControllerPassingCasesTests {
+
+        @Test
+        void shouldSucceedADeposit() throws Exception {
+            DepositResponseDto expectedResponse = DepositResponseDto.builder()
+                    .accountNumber("745c6891-1122-11ef-bee2-0242ac170002")
+                    .balance(new BigDecimal(250))
+                    .build();
+
+            when(makeDepositUseCase.makeDeposit(any(BigDecimal.class), any(Long.class))).thenReturn(expectedResponse);
+
+            mockMvc.perform(post("/bank/services/deposit")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestForMakingDeposit.getContentAsString(UTF_8)))
+                    .andExpect(status().isOk())
+                    .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.content().json(responseForMakingDeposit.getContentAsString(UTF_8), true));
+        }
+
+        @Test
+        void shouldSucceedAWithdrawal() throws Exception {
+            WithdrawalResponseDto expectedResponse = WithdrawalResponseDto.builder()
+                    .accountNumber("745c6891-1122-11ef-bee2-0242ac170002")
+                    .balance(new BigDecimal(100))
+                    .build();
+
+            when(makeWithDrawalUseCase.makeWithdrawal(any(BigDecimal.class), any(Long.class))).thenReturn(expectedResponse);
+
+            mockMvc.perform(post("/bank/services/withdrawal")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestForMakingWithdrawal.getContentAsString(UTF_8)))
+                    .andExpect(status().isOk())
+                    .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.content().json(responseForMakingWithdrawal.getContentAsString(UTF_8), true));
+        }
     }
 
-    @Test
-    void shouldSucceedWithdrawal() throws Exception {
-        WithdrawalResponseDto expectedResponse = WithdrawalResponseDto.builder()
-                .accountNumber("745c6891-1122-11ef-bee2-0242ac170002")
-                .balance(new BigDecimal(250))
-                .build();
+    @Nested
+    class BankAccountControllerBlockingCasesTests {
 
-        when(makeWithDrawalUseCase.makeWithdrawal(new BigDecimal(150), 1L)).thenReturn(expectedResponse);
+        @Test
+        void makeWithdrawalShouldTrowAccountNotFoundException() throws Exception {
+            when(makeWithDrawalUseCase.makeWithdrawal(any(BigDecimal.class), any(Long.class))).thenThrow(new AccountNotFoundException("Account not found for id : 1"));
 
-        mockMvc.perform(post("/bank/services/withdrawal")
-                        .contentType(APPLICATION_JSON)
-                        .content(requestForMakingWithdrawal.getContentAsString(UTF_8)))
-                .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.content().json(responseForMakingWithdrawal.getContentAsString(UTF_8), true));
+            mockMvc.perform(post("/bank/services/withdrawal")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestForMakingWithdrawal.getContentAsString(UTF_8)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.content().json(responseForAccountNotFoundException.getContentAsString(UTF_8), true));
+        }
+
+        @Test
+        void makeDepositShouldTrowAccountNotFoundException() throws Exception {
+            when(makeDepositUseCase.makeDeposit(any(BigDecimal.class), any(Long.class))).thenThrow(new AccountNotFoundException("Account not found for id : 1"));
+
+            mockMvc.perform(post("/bank/services/deposit")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestForMakingDeposit.getContentAsString(UTF_8)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.content().json(responseForAccountNotFoundException.getContentAsString(UTF_8), true));
+        }
+
+        @Test
+        void makeWithdrawalShouldTrowWithdrawalAmountBiggerThanBalanceException() throws Exception {
+            when(makeWithDrawalUseCase.makeWithdrawal(any(BigDecimal.class), any(Long.class))).thenThrow(new WithdrawalAmountBiggerThanBalanceException("Le montant que vous tentez de retirer est supérieur au montant autorisé pour votre compte"));
+
+            mockMvc.perform(post("/bank/services/withdrawal")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestForMakingWithdrawal.getContentAsString(UTF_8)))
+                    .andExpect(status().isForbidden())
+                    .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.content().json(responseForWithdrawalAmountBiggerThanBalanceException.getContentAsString(UTF_8), true));
+        }
+
+        @Test
+        void makeDepositShouldTrowDepositLimitExceededException() throws Exception {
+            when(makeDepositUseCase.makeDeposit(any(BigDecimal.class), any(Long.class))).thenThrow(new DepositLimitExceededException("Your Deposit value exceed the deposit limit on your account"));
+
+            mockMvc.perform(post("/bank/services/deposit")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestForMakingDeposit.getContentAsString(UTF_8)))
+                    .andExpect(status().isForbidden())
+                    .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.content().json(responseForDepositLimitExceededException.getContentAsString(UTF_8), true));
+        }
     }
-
-    /*
-    @Test
-    void shouldTrowAccountNotFoundException() throws Exception {
-        when(makeDepositUseCase.makeDeposit(new BigDecimal(150), 1L)).thenThrow(new AccountNotFoundException("Account not found for id : 1"));
-
-        mockMvc.perform(post("/bank/services/withdrawal")
-                        .contentType(APPLICATION_JSON)
-                        .content(requestForMakingWithdrawal.getContentAsString(UTF_8)))
-                .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.content().json(responseForMakingWithdrawal.getContentAsString(UTF_8), true));
-    }
-*/
 }
